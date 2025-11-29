@@ -1,0 +1,102 @@
+/* ================================
+   SL Admin Dashboard (slad-*)
+   Scoped, clean, and minimal
+================================ */
+
+/* Scope + tokens */
+.slad-root {
+  --slad-green: #154734;
+  --slad-green-2: #103827;
+  --slad-accent: #a3d9a5;
+  --slad-bg: #f4f6f5;
+  --slad-text: #2d2d2d;
+  --slad-shadow: rgba(0, 0, 0, 0.08);
+  font-family: "Inter", "Plus Jakarta Sans", sans-serif;
+}
+
+/* Sidebar blur & depth (kept compatible with SidebarMenu) */
+.slad-root .sidebar,
+.slad-root .slad-sidebar {
+  backdrop-filter: blur(18px) saturate(180%);
+  -webkit-backdrop-filter: blur(18px) saturate(180%);
+  box-shadow: 4px 0 20px var(--slad-shadow);
+}
+
+/* Content area */
+.slad-content {
+}
+
+/* Empty state */
+.slad-empty {
+}
+
+/* Animations */
+.slad-animFadeIn {
+  animation: sladFadeIn 0.5s ease both;
+}
+@keyframes sladFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.slad-animFadeZoom {
+  animation: sladFadeZoom 0.25s ease-out both;
+}
+@keyframes sladFadeZoom {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Hover elevation for cards inside dashboard
+   (scoped agar tidak bentrok global) */
+.slad-root .layer-card,
+.slad-root .access-card,
+.slad-root .meta-card,
+.slad-root .style-card,
+.slad-root .integration-card,
+.slad-root .stat-card {
+  transition: all 0.25s ease;
+}
+.slad-root .layer-card:hover,
+.slad-root .access-card:hover,
+.slad-root .meta-card:hover,
+.slad-root .style-card:hover,
+.slad-root .integration-card:hover,
+.slad-root .stat-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px var(--slad-shadow);
+}
+
+/* Buttons used around dashboard (scoped) */
+.slad-root .back-btn,
+.slad-root .save-btn {
+  transition: all 0.25s ease;
+}
+.slad-root .back-btn:hover,
+.slad-root .save-btn:hover {
+  transform: translateY(-2px);
+}
+
+/* Optional: slim scrollbar (global is fine; keep as-is if diinginkan) */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, var(--slad-accent), var(--slad-green));
+  border-radius: 4px;
+}
+::-webkit-scrollbar-track {
+  background: var(--slad-bg);
+}

@@ -1,0 +1,19 @@
+/* App base: keep neutral, let page CSS own theme */
+@import "./Style/normalize.css";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+@import "maplibre-gl/dist/maplibre-gl.css";
+
+html,
+body {
+  height: 100%;
+}
+body {
+  margin: 0;
+}
+img,
+svg {
+  display: block;
+  max-width: 100%;
+}

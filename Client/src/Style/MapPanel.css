@@ -1,0 +1,77 @@
+@import "maplibre-gl/dist/maplibre-gl.css";
+
+/* Root wrappers */
+.slmp-panel {
+  overflow: hidden;
+}
+.slmp-map {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+
+/* Navbar */
+.slmp-nav {
+  position: absolute;
+  top: 22px;
+  left: 22px;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px;
+  width: 250px;
+  background: rgba(244, 246, 245, 0.82);
+  backdrop-filter: blur(14px) saturate(150%);
+  border: 1px solid rgba(163, 217, 165, 0.4);
+  border-radius: 14px;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease;
+}
+.slmp-nav:hover {
+  box-shadow: 0 10px 32px rgba(0, 0, 0, 0.12);
+  transform: translateY(-1px);
+}
+.slmp-navHome {
+  @apply w-9 h-9 flex items-center justify-center rounded-lg bg-[#154734] text-white hover:bg-[#103827] transition-all;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+}
+
+/* Map Controls */
+.slmp-controls {
+  position: absolute;
+  bottom: 25px;
+  left: 25px;
+  display: flex;
+  gap: 10px;
+  z-index: 15;
+}
+.slmp-controlBtn {
+  @apply w-10 h-10 flex items-center justify-center rounded-xl bg-[#154734] text-white hover:bg-[#103827] transition-all;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12);
+}
+.slmp-controlBtn:hover {
+  transform: scale(1.05);
+}
+.slmp-controlBtn .icon {
+  @apply w-4 h-4;
+}
+
+/* Coordinates */
+.slmp-coords {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(21, 71, 52, 0.8);
+  color: white;
+  font-size: 13px;
+  padding: 6px 18px;
+  border-radius: 10px;
+  letter-spacing: 0.5px;
+  backdrop-filter: blur(8px);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+  z-index: 20;
+  transition: opacity 0.3s ease;
+}
+

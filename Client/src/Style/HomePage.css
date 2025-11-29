@@ -1,0 +1,315 @@
+/* Nav links & buttons */
+.slhp-navLink {
+  @apply hover:text-[#154734] transition-colors duration-200;
+}
+.slhp-btnPrimary {
+  @apply bg-[#154734] text-white font-semibold px-6 py-2.5 rounded-lg shadow-md hover:bg-[#103827] transition-all;
+}
+.slhp-btnOutline {
+  @apply border border-[#154734] text-[#154734] font-semibold px-6 py-2.5 rounded-lg hover:bg-[#154734] hover:text-white transition-all;
+}
+
+.slhp-heroTitle {
+  font-size: clamp(42px, 5vw, 64px);
+  line-height: 1.12;
+  padding-bottom: 10px;
+  font-weight: 800;
+  color: #ffffff;
+  background: linear-gradient(135deg, #ffffff 0%, #d4f0d6 40%, #ffffff 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow: 0 8px 28px rgba(0, 0, 0, 0.35);
+}
+
+/* Hero globe */
+.slhp-heroGlobe {
+  position: relative;
+  width: 420px;
+  height: 420px;
+  margin-inline: auto;
+  margin-right: 0;
+  border-radius: 50%;
+  background: radial-gradient(circle at center, #e7efe9 0%, #f4f6f5 100%);
+  overflow: hidden;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.06);
+}
+.slhp-worldMap {
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(
+      circle at 50% 50%,
+      rgba(21, 71, 52, 0.08),
+      transparent 60%
+    ),
+    url("https://upload.wikimedia.org/wikipedia/commons/8/83/Equirectangular_projection_SW.jpg");
+  background-size: cover;
+  opacity: 0.5;
+  mix-blend-mode: multiply;
+  animation: slhpSlowRotate 40s linear infinite;
+}
+@keyframes slhpSlowRotate {
+  from {
+    transform: rotate(0);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+.slhp-path {
+  position: absolute;
+  height: 2px;
+  border-radius: 10px;
+  background: linear-gradient(90deg, transparent, #154734, transparent);
+  opacity: 0.8;
+  animation: slhpGlobalFlow 6s ease-in-out infinite;
+}
+.slhp-path1 {
+  top: 45%;
+  left: 10%;
+  width: 80%;
+  animation-delay: 0s;
+}
+.slhp-path2 {
+  top: 55%;
+  left: 15%;
+  width: 70%;
+  animation-delay: 1.5s;
+}
+.slhp-path3 {
+  top: 65%;
+  left: 8%;
+  width: 85%;
+  animation-delay: 3s;
+}
+@keyframes slhpGlobalFlow {
+  0%,
+  100% {
+    opacity: 0;
+    transform: translateX(-30px);
+  }
+  50% {
+    opacity: 1;
+    transform: translateX(30px);
+  }
+}
+.slhp-pin {
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #154734;
+  box-shadow: 0 0 0 4px rgba(21, 71, 52, 0.25);
+}
+.slhp-pin1 {
+  top: 38%;
+  left: 30%;
+  animation: slhpBlink 3s infinite;
+}
+.slhp-pin2 {
+  top: 60%;
+  left: 70%;
+  animation: slhpBlink 4s infinite;
+}
+.slhp-pin3 {
+  top: 50%;
+  left: 50%;
+  animation: slhpBlink 5s infinite;
+}
+@keyframes slhpBlink {
+  0%,
+  100% {
+    opacity: 0.6;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.3);
+  }
+}
+
+/* About geogrid */
+.slhp-geogrid {
+  position: relative;
+  height: 300px;
+  border-radius: 18px;
+  background: linear-gradient(135deg, #f4f6f5, #e7efe9);
+  overflow: hidden;
+}
+.slhp-aboutGrid {
+  position: absolute;
+  inset: 0;
+  background-image: linear-gradient(
+      to right,
+      rgba(21, 71, 52, 0.1) 1px,
+      transparent 1px
+    ),
+    linear-gradient(to bottom, rgba(21, 71, 52, 0.1) 1px, transparent 1px);
+  background-size: 25px 25px;
+}
+.slhp-aboutFlow {
+  position: absolute;
+  top: 50%;
+  width: 100%;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, #154734, transparent);
+  animation: slhpFlow 6s ease-in-out infinite;
+}
+@keyframes slhpFlow {
+  0%,
+  100% {
+    opacity: 0.2;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+.slhp-aboutDot {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #154734;
+  box-shadow: 0 0 0 4px rgba(21, 71, 52, 0.25);
+}
+.slhp-aboutDot1 {
+  top: 40%;
+  left: 60%;
+  animation: slhpBlink 3s infinite;
+}
+.slhp-aboutDot2 {
+  top: 65%;
+  left: 40%;
+  animation: slhpBlink 4s infinite;
+}
+
+/* Cards */
+.slhp-stepCard,
+.slhp-featureCard {
+  @apply bg-[#F4F6F5] border border-[#A3D9A5]/60 rounded-xl p-8 shadow-sm hover:-translate-y-1 hover:shadow-md transition-all;
+}
+.slhp-stepNum {
+  font-size: 2rem;
+  font-weight: 800;
+  color: rgba(21, 71, 52, 0.5);
+}
+
+/* Footer */
+.slhp-footerTitle {
+  @apply text-base font-semibold text-[#154734] mb-3;
+}
+.slhp-footerLinks li {
+  @apply text-sm text-[#2D2D2D]/80 mb-1;
+}
+.slhp-footerLinks a:hover {
+  color: #154734;
+}
+.slhp-socialIcon {
+  @apply w-8 h-8 flex items-center justify-center rounded-full bg-[#154734] text-white text-sm font-bold hover:bg-[#103827] transition-all;
+}
+
+.slhp-root {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+/* Hero video */
+.slhp-heroVideo {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+.slhp-heroVideo__media {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: brightness(0.6) saturate(1.05);
+}
+.slhp-heroVideo__overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.35), rgba(0, 0, 0, 0.6));
+}
+.slhp-heroGlobe {
+  backdrop-filter: blur(4px) brightness(1.05);
+  background: radial-gradient(
+    circle at 30% 30%,
+    rgba(255, 255, 255, 0.12),
+    transparent 70%
+  );
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+}
+
+/* Animations */
+.slhp-animFadeDown {
+  animation: slhpFadeDown 0.8s ease both;
+}
+@keyframes slhpFadeDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.slhp-animFadeIn {
+  animation: slhpFadeIn 1s ease both;
+}
+@keyframes slhpFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.slhp-animSlideUp {
+  animation: slhpSlideUp 1.2s ease both;
+}
+@keyframes slhpSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.slhp-animScaleIn {
+  animation: slhpScaleIn 1s ease both;
+}
+@keyframes slhpScaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+}
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #a3d9a5, #154734);
+  border-radius: 4px;
+  border: 2px solid #f4f6f5;
+}
+::-webkit-scrollbar-track {
+  background: #e7efe9;
+}
+/* Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #154734 #e7efe9;
+}
