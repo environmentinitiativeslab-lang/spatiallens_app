@@ -52,7 +52,11 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration cfg = new CorsConfiguration();
-        cfg.setAllowedOrigins(List.of(allowedOrigin));
+        cfg.setAllowedOrigins(List.of(
+            "https://spatiallens.cloud",
+            "http://localhost:5173",
+            "https://www.spatiallens.cloud"
+        ));
         cfg.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
         // PENTING: Tambahkan semua header yang dibutuhkan untuk multipart upload
         cfg.setAllowedHeaders(List.of("*")); // Izinkan semua header
