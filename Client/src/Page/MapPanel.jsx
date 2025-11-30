@@ -15,6 +15,7 @@ const ADMIN_SRC = "admin-boundary-src";
 const ADMIN_LINE = "admin-boundary-line";
 const ADMIN_FILL = "admin-boundary-fill";
 const ADMIN_URL = `${API_BASE}/batas-admin/BatasAdmin.geojson`;
+
 const DEFAULT_STYLE = {
   fillColor: "#690000",
   lineColor: "#4a0000",
@@ -29,9 +30,9 @@ export default function MapPanel() {
 
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [addLayerModalOpen, setAddLayerModalOpen] = useState(false);
-  const [coords, setCoords] = useState({ lat: 0, lng: 0 });
 
-  const [availableLayers, setAvailableLayers] = useState([]); // metadata
+  const [coords, setCoords] = useState({ lat: 0, lng: 0 });
+  const [availableLayers, setAvailableLayers] = useState([]);
   const [addedLayers, setAddedLayers] = useState([]);
   const [visibleLayers, setVisibleLayers] = useState({});
   const [searchQuery, setSearchQuery] = useState("");
@@ -40,20 +41,26 @@ export default function MapPanel() {
   const [bboxCache, setBboxCache] = useState({});
   const styleCache = useRef({});
 
-  // Popup state
   const [popupInfo, setPopupInfo] = useState(null);
 
-  // API util (include bearer)
+  // =====================================================
+  // API helper (inject JWT)
+  // =====================================================
   const api = async (path) => {
     const headers = {};
     const t = jwtToken();
     if (t) headers["Authorization"] = `Bearer ${t}`;
+
     const res = await fetch(`${API_BASE}${path}`, { headers });
     if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
+
     const ct = res.headers.get("content-type") || "";
     return ct.includes("application/json") ? res.json() : null;
   };
 
+  // =====================================================
+  // Init MapLibre
+  // =====================================================
   useEffect(() => {
     if (map.current || !mapContainer.current) return;
 
@@ -63,8 +70,11 @@ export default function MapPanel() {
       center: [106.8, -6.6],
       zoom: 8,
       attributionControl: false,
+
+      // FIX 100% — gunakan endpoint backend kamu
       transformRequest: (url) => {
-        const prefix = `${API_BASE}/tiles/`;
+        const prefix = `${API_BASE}/api/layers/tiles/`;
+
         if (url.startsWith(prefix)) {
           const t = jwtToken();
           return t
@@ -95,20 +105,9 @@ export default function MapPanel() {
     };
   }, []);
 
-  // Close popup when clicking outside it
-  useEffect(() => {
-    if (!popupInfo) return;
-    const handleClickOutside = (e) => {
-      if (popupRef.current && !popupRef.current.contains(e.target)) {
-        handleClosePopup();
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside, true);
-    return () =>
-      document.removeEventListener("mousedown", handleClickOutside, true);
-  }, [popupInfo]);
-
-  // -- Admin boundary
+  // =====================================================
+  // Admin boundary layer
+  // =====================================================
   const ensureAdminLayer = () => {
     if (!map.current || map.current.getSource(ADMIN_SRC)) return;
 
@@ -137,40 +136,49 @@ export default function MapPanel() {
   const toggleAdmin = () => {
     ensureAdminLayer();
     const next = adminOn ? "none" : "visible";
-    [ADMIN_FILL, ADMIN_LINE].forEach(
-      (id) =>
-        map.current?.getLayer(id) &&
-        map.current.setLayoutProperty(id, "visibility", next)
-    );
+
+    [ADMIN_FILL, ADMIN_LINE].forEach((id) => {
+      if (map.current.getLayer(id)) {
+        map.current.setLayoutProperty(id, "visibility", next);
+      }
+    });
+
     setAdminOn((v) => !v);
   };
 
-  // ====== VECTOR TILE (MVT) ======
+  // =====================================================
+  // Fetch BBOX for focus
+  // =====================================================
   const fetchBbox = async (slug) => {
     if (bboxCache[slug]) return bboxCache[slug];
+
     try {
       const meta = await api(`/api/layers/meta/${slug}`);
       if (meta?.bbox) {
-        setBboxCache((prev) => ({ ...prev, [slug]: meta.bbox }));
+        setBboxCache((p) => ({ ...p, [slug]: meta.bbox }));
         return meta.bbox;
       }
     } catch {}
+
     return null;
   };
 
+  // =====================================================
+  // Fetch Style
+  // =====================================================
   const parseStyle = (raw) => {
     if (!raw) return DEFAULT_STYLE;
     try {
       const obj = typeof raw === "string" ? JSON.parse(raw) : raw;
       return {
-        fillColor: obj?.fillColor || DEFAULT_STYLE.fillColor,
-        lineColor: obj?.lineColor || DEFAULT_STYLE.lineColor,
+        fillColor: obj.fillColor || DEFAULT_STYLE.fillColor,
+        lineColor: obj.lineColor || DEFAULT_STYLE.lineColor,
         fillOpacity:
-          Number.isFinite(obj?.fillOpacity) && obj.fillOpacity >= 0
+          Number.isFinite(obj.fillOpacity) && obj.fillOpacity >= 0
             ? obj.fillOpacity
             : DEFAULT_STYLE.fillOpacity,
         lineWidth:
-          Number.isFinite(obj?.lineWidth) && obj.lineWidth > 0
+          Number.isFinite(obj.lineWidth) && obj.lineWidth > 0
             ? obj.lineWidth
             : DEFAULT_STYLE.lineWidth,
       };
@@ -181,6 +189,7 @@ export default function MapPanel() {
 
   const fetchStyle = async (slug) => {
     if (styleCache.current[slug]) return styleCache.current[slug];
+
     try {
       const res = await api(`/api/layers/${slug}/style`);
       const style = parseStyle(res);
@@ -192,23 +201,12 @@ export default function MapPanel() {
     }
   };
 
-  const applyLayerStyle = async (slug) => {
-    if (!map.current) return;
-    const style = await fetchStyle(slug);
-    const fillId = `mvt-fill-${slug}`;
-    const lineId = `mvt-line-${slug}`;
-    if (map.current.getLayer(fillId)) {
-      map.current.setPaintProperty(fillId, "fill-color", style.fillColor);
-      map.current.setPaintProperty(fillId, "fill-opacity", style.fillOpacity);
-    }
-    if (map.current.getLayer(lineId)) {
-      map.current.setPaintProperty(lineId, "line-color", style.lineColor);
-      map.current.setPaintProperty(lineId, "line-width", style.lineWidth);
-    }
-  };
-
+  // =====================================================
+  // ADD MVT LAYER (INI FIX TERBESAR)
+  // =====================================================
   const addMvtLayer = (meta) => {
     if (!map.current) return;
+
     const slug = slugOf(meta);
     const srcId = `mvt-src-${slug}`;
     const fillId = `mvt-fill-${slug}`;
@@ -217,12 +215,14 @@ export default function MapPanel() {
     if (!map.current.getSource(srcId)) {
       map.current.addSource(srcId, {
         type: "vector",
-        tiles: [`${API_BASE}/tiles/${slug}/{z}/{x}/{y}.mvt`],
-        minzoom: Number.isFinite(meta?.minzoom) ? meta.minzoom : 0,
-        maxzoom: Number.isFinite(meta?.maxzoom) ? meta.maxzoom : 22,
+
+        // FIX 100% — URL tile backend
+        tiles: [`${API_BASE}/api/layers/tiles/${slug}/{z}/{x}/{y}.mvt`],
+
+        minzoom: meta?.minzoom ?? 0,
+        maxzoom: meta?.maxzoom ?? 22,
       });
 
-      // default style (bisa diganti via style endpoint di kemudian hari)
       map.current.addLayer({
         id: fillId,
         type: "fill",
@@ -247,56 +247,53 @@ export default function MapPanel() {
         layout: { visibility: "visible" },
       });
 
-      // Add highlight layer for selected feature
+      // highlight
       const highlightId = `mvt-highlight-${slug}`;
       map.current.addLayer({
         id: highlightId,
         type: "line",
         source: srcId,
         "source-layer": slug,
-        paint: {
-          "line-color": "#1e5a8e",
-          "line-width": 4,
-        },
+        paint: { "line-color": "#1e5a8e", "line-width": 4 },
         layout: { visibility: "visible" },
         filter: ["==", "id", ""],
       });
 
-      // Add click handler for popup
+      // click popup
       map.current.on("click", fillId, (e) => {
-        if (!e.features || e.features.length === 0) return;
-        const feature = e.features[0];
-        handleFeatureClick(feature, e.lngLat, meta.name, slug);
-      });
-
-      // Change cursor to pointer on hover
-      map.current.on("mouseenter", fillId, () => {
-        map.current.getCanvas().style.cursor = "pointer";
-      });
-      map.current.on("mouseleave", fillId, () => {
-        map.current.getCanvas().style.cursor = "";
+        if (!e.features?.length) return;
+        handleFeatureClick(e.features[0], e.lngLat, meta.name, slug);
       });
     }
 
-    // prefetch bbox for focus
     fetchBbox(slug);
-    // apply style (async)
     applyLayerStyle(slug);
 
-    setAddedLayers((prev) => [
-      ...prev,
-      { ...meta, _kind: "mvt", _id: slug, _ids: { fillId, lineId, srcId } },
-    ]);
-    setVisibleLayers((prev) => ({ ...prev, [slug]: true }));
+    setAddedLayers((p) => [...p, { ...meta, _kind: "mvt", _id: slug }]);
+    setVisibleLayers((p) => ({ ...p, [slug]: true }));
   };
 
-  // Handle feature click and collect properties
+  const applyLayerStyle = async (slug) => {
+    const style = await fetchStyle(slug);
+    const fillId = `mvt-fill-${slug}`;
+    const lineId = `mvt-line-${slug}`;
+
+    if (map.current.getLayer(fillId)) {
+      map.current.setPaintProperty(fillId, "fill-color", style.fillColor);
+      map.current.setPaintProperty(fillId, "fill-opacity", style.fillOpacity);
+    }
+
+    if (map.current.getLayer(lineId)) {
+      map.current.setPaintProperty(lineId, "line-color", style.lineColor);
+      map.current.setPaintProperty(lineId, "line-width", style.lineWidth);
+    }
+  };
+
   const handleFeatureClick = (feature, lngLat, layerName, slug) => {
     try {
       const properties = feature.properties || {};
-      const featureId = feature.id || feature.properties?.id;
+      const featureId = feature.id || properties?.id;
 
-      // Set highlight on clicked feature
       if (map.current && featureId) {
         const highlightId = `mvt-highlight-${slug}`;
         if (map.current.getLayer(highlightId)) {
@@ -304,63 +301,36 @@ export default function MapPanel() {
         }
       }
 
-      // Hitung luas (ha) jika polygon/multipolygon, fallback untuk tampilan
       let areaInfo = null;
-      const geometry = feature.geometry;
-      if (
-        geometry &&
-        (geometry.type === "Polygon" || geometry.type === "MultiPolygon")
-      ) {
+      const geom = feature.geometry;
+      if (geom && ["Polygon", "MultiPolygon"].includes(geom.type)) {
         try {
-          const area = turf.area(feature); // m2
-          const ha = area / 10000;
-          areaInfo = { ha: Number.isFinite(ha) ? ha.toFixed(2) : null };
-        } catch (err) {
-          console.error("Error calculating area:", err);
-        }
+          const area = turf.area(feature);
+          areaInfo = { ha: (area / 10000).toFixed(2) };
+        } catch {}
       }
 
-      setPopupInfo({
-        lngLat,
-        properties, // Tampilkan semua properties tanpa filter
-        areaInfo,
-        layerName,
-      });
+      setPopupInfo({ lngLat, properties, areaInfo, layerName });
     } catch (err) {
-      console.error("Error handling feature click:", err);
+      console.error(err);
     }
   };
 
-  // Clear highlight when popup closed
   const handleClosePopup = () => {
     setPopupInfo(null);
 
-    // Clear all highlight filters
     addedLayers.forEach((layer) => {
       const slug = layer._id || slugOf(layer);
       const highlightId = `mvt-highlight-${slug}`;
-      if (map.current && map.current.getLayer(highlightId)) {
+      if (map.current.getLayer(highlightId)) {
         map.current.setFilter(highlightId, ["==", "id", ""]);
       }
     });
   };
 
-  const removeMvtLayer = (slug) => {
-    if (!map.current) return;
-    const srcId = `mvt-src-${slug}`;
-    const fillId = `mvt-fill-${slug}`;
-    const lineId = `mvt-line-${slug}`;
-    const highlightId = `mvt-highlight-${slug}`;
-    try {
-      if (map.current.getLayer(highlightId))
-        map.current.removeLayer(highlightId);
-      if (map.current.getLayer(fillId)) map.current.removeLayer(fillId);
-      if (map.current.getLayer(lineId)) map.current.removeLayer(lineId);
-      if (map.current.getSource(srcId)) map.current.removeSource(srcId);
-    } catch {}
-  };
-
-  // ====== Modal Add Layers ======
+  // =====================================================
+  // Sidebar & Layer Control
+  // =====================================================
   const handleAddLayerClick = () => {
     if (availableLayers.length === 0) {
       api(`/api/layers/meta`)
@@ -374,62 +344,59 @@ export default function MapPanel() {
     if (layer?.slug) {
       addMvtLayer(layer);
       setAddLayerModalOpen(false);
-      return;
     }
   };
 
-  const handleRemoveLayer = (idOrLayer) => {
-    const id =
-      typeof idOrLayer === "string"
-        ? idOrLayer
-        : idOrLayer._id || slugOf(idOrLayer);
-    const item = addedLayers.find((l) => (l._id || slugOf(l)) === id);
-    if (item?._kind === "mvt") removeMvtLayer(id);
-    setAddedLayers((prev) => prev.filter((l) => (l._id || slugOf(l)) !== id));
-    setVisibleLayers((prev) => {
-      const { [id]: _omit, ...rest } = prev;
+  const handleRemoveLayer = (id) => {
+    const slug = typeof id === "string" ? id : id._id;
+
+    const srcId = `mvt-src-${slug}`;
+    const fillId = `mvt-fill-${slug}`;
+    const lineId = `mvt-line-${slug}`;
+    const highlightId = `mvt-highlight-${slug}`;
+
+    try {
+      if (map.current.getLayer(highlightId))
+        map.current.removeLayer(highlightId);
+      if (map.current.getLayer(fillId)) map.current.removeLayer(fillId);
+      if (map.current.getLayer(lineId)) map.current.removeLayer(lineId);
+      if (map.current.getSource(srcId)) map.current.removeSource(srcId);
+    } catch {}
+
+    setAddedLayers((p) => p.filter((l) => l._id !== slug));
+    setVisibleLayers((p) => {
+      const { [slug]: _, ...rest } = p;
       return rest;
     });
   };
 
-  const toggleLayerVisibility = (id) => {
-    if (!map.current) return;
-    const isVisible = !!visibleLayers[id];
-    const to = isVisible ? "none" : "visible";
+  const toggleLayerVisibility = (slug) => {
+    const vis = !!visibleLayers[slug];
+    const nextVis = vis ? "none" : "visible";
 
-    // MVT?
-    const fillId = `mvt-fill-${id}`;
-    const lineId = `mvt-line-${id}`;
-    const highlightId = `mvt-highlight-${id}`;
-    if (map.current.getLayer(fillId) || map.current.getLayer(lineId)) {
-      if (map.current.getLayer(fillId))
-        map.current.setLayoutProperty(fillId, "visibility", to);
-      if (map.current.getLayer(lineId))
-        map.current.setLayoutProperty(lineId, "visibility", to);
-      if (map.current.getLayer(highlightId))
-        map.current.setLayoutProperty(highlightId, "visibility", to);
-    }
-    setVisibleLayers((prev) => ({ ...prev, [id]: !isVisible }));
+    ["fill", "line", "highlight"].forEach((t) => {
+      const id = `mvt-${t}-${slug}`;
+      if (map.current.getLayer(id)) {
+        map.current.setLayoutProperty(id, "visibility", nextVis);
+      }
+    });
+
+    setVisibleLayers((p) => ({ ...p, [slug]: !vis }));
   };
 
   const focusLayer = async (layer) => {
-    if (!map.current || !layer) return;
-    const id = layer._id || slugOf(layer);
+    const slug = layer._id;
 
-    // Ensure layer visible
-    const fillId = `mvt-fill-${id}`;
-    const lineId = `mvt-line-${id}`;
-    const highlightId = `mvt-highlight-${id}`;
-    [fillId, lineId, highlightId].forEach((lid) => {
-      if (map.current.getLayer(lid)) {
-        map.current.setLayoutProperty(lid, "visibility", "visible");
+    ["fill", "line", "highlight"].forEach((t) => {
+      const id = `mvt-${t}-${slug}`;
+      if (map.current.getLayer(id)) {
+        map.current.setLayoutProperty(id, "visibility", "visible");
       }
     });
-    setVisibleLayers((prev) => ({ ...prev, [id]: true }));
 
-    // Fit to bbox if available
-    let box = layer.bbox || bboxCache[id] || (await fetchBbox(id));
+    setVisibleLayers((p) => ({ ...p, [slug]: true }));
 
+    let box = layer.bbox || bboxCache[slug] || (await fetchBbox(slug));
     if (Array.isArray(box) && box.length === 4) {
       const [minX, minY, maxX, maxY] = box;
       map.current.fitBounds(
@@ -442,21 +409,20 @@ export default function MapPanel() {
     }
   };
 
-  // Handoff dari Admin → Map
   const tryHandoffAdd = () => {
     const handoff = localStorage.getItem("sl:addToMap");
     if (!handoff) return;
     try {
       const layer = JSON.parse(handoff);
-      if (!layer) return;
-      if (layer.slug) {
-        addMvtLayer(layer);
-      }
+      if (layer?.slug) addMvtLayer(layer);
     } catch {}
     localStorage.removeItem("sl:addToMap");
   };
 
-  // Published only di modal (kalau field status ada)
+  // =====================================================
+  // Rendering
+  // =====================================================
+
   const filteredLayers = (availableLayers || [])
     .filter((l) => !l.status || l.status === "Published")
     .filter((l) =>
@@ -464,14 +430,11 @@ export default function MapPanel() {
     )
     .sort((a, b) => (a.name || "").localeCompare(b.name || ""));
 
-  const zoomIn = () => map.current?.zoomIn({ duration: 500 });
-  const zoomOut = () => map.current?.zoomOut({ duration: 500 });
-
   return (
     <div className="slmp-panel font-sans text-[#2D2D2D] bg-[#F4F6F5] min-h-screen relative">
       <div ref={mapContainer} className="slmp-map" />
 
-      {/* Navbar */}
+      {/* NAV */}
       <header className="slmp-nav">
         <div className="flex flex-col leading-tight">
           <div className="flex items-center gap-2">
@@ -487,6 +450,7 @@ export default function MapPanel() {
         </a>
       </header>
 
+      {/* Sidebar */}
       <LayerSidebar
         sidebarOpen={sidebarOpen}
         setSidebarOpen={setSidebarOpen}
@@ -506,22 +470,30 @@ export default function MapPanel() {
         handleAddLayer={handleAddLayer}
       />
 
-      {/* Map Controls */}
+      {/* ZOOM CONTROL */}
       <div className="slmp-controls">
-        <button title="Zoom In" className="slmp-controlBtn" onClick={zoomIn}>
+        <button
+          title="Zoom In"
+          className="slmp-controlBtn"
+          onClick={() => map.current?.zoomIn({ duration: 500 })}
+        >
           <ZoomIn className="icon" />
         </button>
-        <button title="Zoom Out" className="slmp-controlBtn" onClick={zoomOut}>
+        <button
+          title="Zoom Out"
+          className="slmp-controlBtn"
+          onClick={() => map.current?.zoomOut({ duration: 500 })}
+        >
           <ZoomOut className="icon" />
         </button>
       </div>
 
-      {/* Coordinates */}
+      {/* COORDS */}
       <div className="slmp-coords">
         Lat {coords.lat.toFixed(6)} Long {coords.lng.toFixed(6)}
       </div>
 
-      {/* Feature Info Popup */}
+      {/* POPUP */}
       {popupInfo && (
         <FeaturePopup
           ref={popupRef}
