@@ -84,6 +84,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/tiles/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/layers/meta/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/layers/*/style").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/styles/**").permitAll()
 
                         // AUTH
                         .requestMatchers("/api/auth/**").permitAll()
