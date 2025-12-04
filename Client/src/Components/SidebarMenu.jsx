@@ -13,7 +13,7 @@ import logoEIL from "../assets/img/LogoEILTP.png";
 function SidebarMenu({ activeTab, setActiveTab }) {
   const menu = [
     { id: "layers", label: "Data Layers", Icon: Layers },
-    // { id: "metadata", label: "Metadata", Icon: Info },
+    { id: "metadata", label: "Metadata", Icon: Info },
     { id: "styling", label: "Styling", Icon: Paintbrush },
     { id: "access", label: "Access Control", Icon: Users },
     { id: "api", label: "API Services", Icon: Link2 },

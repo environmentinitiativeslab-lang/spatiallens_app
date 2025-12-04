@@ -21,6 +21,7 @@ import jakarta.servlet.http.HttpServletResponse;
 
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
+
     private final JwtService jwt;
     private final UserRepository users;
 
@@ -30,35 +31,57 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     }
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, 
+                                    FilterChain chain)
             throws ServletException, IOException {
 
+        String path = request.getRequestURI();
+
+        // 🔥 1️⃣ Lewati filter untuk endpoint auth
+        if (path.startsWith("/api/auth/")) {
+            chain.doFilter(request, response);
+            return;
+        }
+
+        // 🔥 2️⃣ Ambil token dari header Authorization
         String header = request.getHeader(HttpHeaders.AUTHORIZATION);
+
         if (header != null && header.startsWith("Bearer ")
                 && SecurityContextHolder.getContext().getAuthentication() == null) {
 
-            String token = header.substring(7);
+            String token = header.substring(7); // Remove "Bearer "
+
             try {
-                Claims claims = jwt.parse(token);
+                Claims claims = jwt.parse(token);  // Parse JWT
+
                 Long userId = Long.valueOf(claims.getSubject());
                 String tokenEmail = (String) claims.get("email");
 
                 User user = users.findById(userId).orElse(null);
+
                 if (user != null && Boolean.TRUE.equals(user.getActive())) {
-                    // authority diambil dari DB (abaikan klaim "role")
+
+                    // Validasi email dalam token dan DB
                     if (tokenEmail != null && !tokenEmail.equalsIgnoreCase(user.getEmail())) {
                         throw new SecurityException("Token/email mismatch");
                     }
+
+                    // Set authentication ke Spring Security context
                     var auth = new UsernamePasswordAuthenticationToken(
-                            user,
-                            null,
-                            List.of(new SimpleGrantedAuthority("ROLE_" + user.getRole().name())));
+                        user,
+                        null,
+                        List.of(new SimpleGrantedAuthority("ROLE_" + user.getRole().name()))
+                    );
+
                     SecurityContextHolder.getContext().setAuthentication(auth);
                 }
-            } catch (Exception ignore) {
-                // invalid -> lanjut tanpa authentication
+
+            } catch (Exception ex) {
+                // Jika token invalid, lanjut tanpa authentication
             }
         }
+
+        // 🔥 3️⃣ Lanjutkan filter
         chain.doFilter(request, response);
     }
 }

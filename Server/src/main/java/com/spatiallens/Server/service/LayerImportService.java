@@ -99,6 +99,7 @@ public class LayerImportService {
         meta.setType(upload.getType());
         meta.setMinzoom(0);
         meta.setMaxzoom(22);
+        meta.setCategory(upload.getCategory());
         meta.setRawPath(upload.getRawPath());
         meta.setPublicPath(upload.getPublicPath());
         

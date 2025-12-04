@@ -61,6 +61,10 @@ public class LayerUpload {
     @Column(name = "raw_path")
     private String rawPath;
 
+    /** Category (e.g., KPI, Tutupan Lahan) */
+    @Column(name = "category")
+    private String category;
+
     @PrePersist
     public void prePersist() {
         if (createdAt == null)
@@ -69,5 +73,7 @@ public class LayerUpload {
             status = "Draft";
         if (type == null)
             type = "Unknown";
+        if (category == null || category.isBlank())
+            category = "Uncategorized";
     }
 }

@@ -1,44 +1,24 @@
-import React from "react";
-import { Link } from "react-router-dom";
+﻿import React from "react";
 import { Layers, Radio, Compass } from "lucide-react";
-import logoEIL from "../assets/img/LogoEILTP.png";
 import "../Style/HomePage.css";
 import heroVideo from "../assets/video/Video_Highlight.mp4";
+import HomeNavbar from "../Components/HomeNavbar";
+import HomeFooter from "../Components/HomeFooter";
+import collabImg14 from "../assets/img/14.jpg";
+import collabImg15 from "../assets/img/15.png";
+import collabImg16 from "../assets/img/16.png";
+import collabImg1 from "../assets/img/1.png";
+import collabImg2 from "../assets/img/2.png";
+import collabImg3 from "../assets/img/3.png";
+import collabImg4 from "../assets/img/4.png";
+import collabImg5 from "../assets/img/5.png";
+import collabImg6 from "../assets/img/6.png";
+import collabImg7 from "../assets/img/7.png";
 
 function HomePage() {
   return (
     <div className="slhp-root font-sans text-[#2D2D2D] bg-[#F4F6F5] overflow-x-hidden">
-      <header className="slhp-nav fixed w-full top-0 bg-[#F4F6F5]/95 backdrop-blur-md border-b border-[#A3D9A5]/60 z-50 slhp-animFadeDown">
-        <nav className="container mx-auto flex items-center justify-between px-20 py-4">
-          <a
-            href="#home"
-            className="flex items-center gap-2 font-extrabold text-[#154734] text-lg"
-          >
-            <img src={logoEIL} alt="Spatial Lens" className="w-12 h-12" />
-            Spatial Lens
-          </a>
-          <div className="hidden md:flex gap-10 text-sm font-medium text-[#2D2D2D]/80">
-            <Link to="/map" className="slhp-navLink">
-              Map Panel
-            </Link>
-            <a href="#how" className="slhp-navLink">
-              How It Works
-            </a>
-            <a href="#features" className="slhp-navLink">
-              Features
-            </a>
-            <a href="#about" className="slhp-navLink">
-              About
-            </a>
-            <a href="#contact" className="slhp-navLink">
-              Contact
-            </a>
-          </div>
-          <a href="#demo" className="slhp-btnPrimary text-sm px-5 py-2">
-            Try Demo
-          </a>
-        </nav>
-      </header>
+      <HomeNavbar />
 
       <section id="home" className="relative w-full overflow-hidden">
         <div className="slhp-heroMask" />
@@ -66,8 +46,8 @@ function HomePage() {
               helps you see data as flowing stories across continents.
             </p>
             <div className="flex gap-4 mt-4">
-              <a href="#demo" className="slhp-btnPrimary">
-                Try Demo
+              <a href="/map" className="slhp-btnPrimary">
+                Map Panel
               </a>
               <a href="#docs" className="slhp-btnOutline">
                 Learn More
@@ -87,30 +67,88 @@ function HomePage() {
         </div>
       </section>
 
-      <section
-        id="how"
-        className="py-20 bg-white border-t border-[#A3D9A5]/60 slhp-animFadeIn"
-      >
-        <div className="container mx-auto px-20 text-center">
-          <h2 className="text-3xl font-bold mb-10 text-[#2D2D2D]">
-            How It Works
-          </h2>
-          <div className="grid md:grid-cols-3 gap-14">
-            <Step
-              num="01"
-              title="Import"
-              desc="Upload or stream spatial data with minimal setup."
-            />
-            <Step
-              num="02"
-              title="Analyze"
-              desc="Detect patterns and visualize live connections."
-            />
-            <Step
-              num="03"
-              title="Publish"
-              desc="Share your map stories with one click."
-            />
+      <section id="collab" className="slhp-collab slhp-animFadeIn">
+        <div className="container mx-auto px-20 py-16">
+          <div className="text-center mb-10 space-y-2">
+            <h2 className="slhp-collabTitle">Environment Initiatives Lab</h2>
+            <p className="slhp-collabLead">
+              We focus on geospatial work: consulting, research, and training —
+              all aimed at making spatial data clear and actionable.
+            </p>
+          </div>
+
+          <div className="slhp-collabGrid">
+            {[
+              {
+                title: "Consulting",
+                desc: "Spatial data procurement for zoning, industry, and infrastructure decisions.",
+                img: collabImg14,
+              },
+              {
+                title: "Research",
+                desc: "Analytical studies and conference-grade insights to support policy and planning.",
+                img: collabImg16,
+              },
+              {
+                title: "Training",
+                desc: "Hands-on mapping training for technical teams and government partners.",
+                img: collabImg15,
+              },
+            ].map((item) => (
+              <div key={item.title} className="slhp-collabCard">
+                <div
+                  className="slhp-collabThumb"
+                  aria-hidden="true"
+                  style={
+                    item.img
+                      ? {
+                          backgroundImage: `linear-gradient(135deg, rgba(255,255,255,0.15), rgba(0,0,0,0.15)), url(${item.img})`,
+                        }
+                      : undefined
+                  }
+                />
+                <h3 className="slhp-collabCardTitle">{item.title}</h3>
+                <p className="slhp-collabCardDesc">{item.desc}</p>
+              </div>
+            ))}
+          </div>
+          <div className="mt-12 text-center">
+            <p className="uppercase text-sm font-semibold tracking-wide text-[#154734]/80 mb-4">
+              Partners
+            </p>
+
+            <div className="grid md:grid-cols-3 lg:grid-cols-4 gap-6 lg:gap-8 justify-center">
+              {[
+                { name: "Kementerian Lingkungan Hidup", logo: collabImg6 },
+                { name: "Kementerian PPN/Bappenas", logo: collabImg2 },
+                { name: "Kementerian Perindustrian", logo: collabImg3 },
+                {
+                  name: "Kementerian Agraria dan Tata Ruang/BPN",
+                  logo: collabImg4,
+                },
+                { name: "National Taipei University", logo: collabImg5 },
+                {
+                  name: "National Taiwan Normal University",
+                  logo: collabImg1,
+                },
+                {
+                  name: "Young Urbanists of Southeast Asia",
+                  logo: collabImg7,
+                },
+              ].map((item) => (
+                <div
+                  key={item.name}
+                  className="slhp-partnerBadge slhp-partnerBadge--light flex flex-col items-center text-center"
+                >
+                  <img
+                    src={item.logo}
+                    alt={item.name}
+                    className="slhp-partnerLogo mb-2"
+                  />
+                  <span className="leading-tight">{item.name}</span>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </section>
@@ -118,27 +156,27 @@ function HomePage() {
       <section id="features" className="py-20 bg-[#F4F6F5] slhp-animFadeIn">
         <div className="container mx-auto px-20 text-center">
           <h2 className="text-3xl font-bold mb-3 text-[#2D2D2D]">
-            Designed for Modern Mapmakers
+            Designed for Public Map Visitors
           </h2>
           <p className="text-[#2D2D2D]/70 mb-12 max-w-2xl mx-auto">
-            Built for performance, clarity, and calm design — every feature
-            enhances your spatial storytelling.
+            Built so the public can easily explore layers, attributes, legends,
+            and metadata in a calm, informative interface.
           </p>
           <div className="grid md:grid-cols-3 gap-14">
             <Feature
               icon={<Layers />}
-              title="Layer Control"
-              desc="Organize your map with precision and clarity."
+              title="View Layers"
+              desc="Public visitors can turn layers on/off and view legends clearly."
             />
             <Feature
               icon={<Radio />}
-              title="Live Data Feeds"
-              desc="Stream real-time spatial data seamlessly."
+              title="Attributes & Details"
+              desc="Click a feature to read attributes and relevant metadata."
             />
             <Feature
               icon={<Compass />}
-              title="Smart Navigation"
-              desc="Explore large datasets with ease and fluidity."
+              title="Metadata at a Glance"
+              desc="Per-layer metadata is available so context stays clear."
             />
           </div>
         </div>
@@ -157,12 +195,12 @@ function HomePage() {
           </div>
           <div className="space-y-5 slhp-animSlideUp">
             <h2 className="text-3xl font-bold text-[#2D2D2D]">
-              Mapping that Feels Alive
+              Mapping that Serves Everyone
             </h2>
             <p className="text-[#2D2D2D]/70 leading-relaxed">
-              Spatial Lens brings clarity to data through smooth interactions,
-              calm color schemes, and intelligent layer management — inspired by
-              the movement of Earth itself.
+              Spatial Lens delivers clear maps: the public can view data,
+              attributes, legends, and metadata effortlessly, while content
+              stays well managed.
             </p>
             <a href="#contact" className="slhp-btnPrimary inline-block">
               Contact Us
@@ -171,50 +209,7 @@ function HomePage() {
         </div>
       </section>
 
-      <footer
-        id="contact"
-        className="slhp-footer bg-[#E7EFE9]/50 border-t border-[#A3D9A5]/60 pt-16 pb-10 slhp-animFadeIn"
-      >
-        <div className="container mx-auto px-20 grid md:grid-cols-12 gap-12">
-          <div className="md:col-span-3 space-y-3">
-            <h3 className="text-xl font-bold text-[#154734]">Spatial Lens</h3>
-            <p className="text-sm text-[#2D2D2D]/70">
-              Calm meets clarity — mapping tools that bring balance to modern
-              GIS design.
-            </p>
-          </div>
-          <FooterCol
-            title="Explore"
-            items={["Features", "Demo", "How It Works"]}
-          />
-          <FooterCol title="Resources" items={["Docs", "API", "Guides"]} />
-          <FooterCol title="Company" items={["About", "Careers", "Support"]} />
-          <div className="md:col-span-3">
-            <h4 className="slhp-footerTitle">Connect</h4>
-            <p className="text-sm text-[#2D2D2D]/70 mb-2">
-              hello@spatiallens.io
-            </p>
-            <div className="flex gap-3">
-              <SocialIcon name="Twitter" />
-              <SocialIcon name="LinkedIn" />
-              <SocialIcon name="GitHub" />
-            </div>
-          </div>
-        </div>
-        <div className="text-center text-xs text-[#2D2D2D]/60 mt-8 border-t border-[#A3D9A5]/50 pt-5">
-          © {new Date().getFullYear()} Spatial Lens. All rights reserved.
-        </div>
-      </footer>
-    </div>
-  );
-}
-
-function Step({ num, title, desc }) {
-  return (
-    <div className="slhp-stepCard slhp-animSlideUp">
-      <div className="slhp-stepNum">{num}</div>
-      <h3 className="text-base font-semibold text-[#154734] mt-2">{title}</h3>
-      <p className="text-[#2D2D2D]/70 text-sm mt-1">{desc}</p>
+      <HomeFooter />
     </div>
   );
 }
@@ -227,25 +222,6 @@ function Feature({ icon, title, desc }) {
       <p className="text-[#2D2D2D]/70 mt-2 text-sm">{desc}</p>
     </div>
   );
-}
-
-function FooterCol({ title, items }) {
-  return (
-    <div className="md:col-span-2">
-      <h4 className="slhp-footerTitle">{title}</h4>
-      <ul className="slhp-footerLinks">
-        {items.map((item) => (
-          <li key={item}>
-            <a href="#">{item}</a>
-          </li>
-        ))}
-      </ul>
-    </div>
-  );
-}
-
-function SocialIcon({ name }) {
-  return <div className="slhp-socialIcon">{name[0]}</div>;
 }
 
 export default HomePage;

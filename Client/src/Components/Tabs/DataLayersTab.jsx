@@ -196,6 +196,8 @@ export default function DataLayersTab() {
     name: "",
     type: "Shapefile (.shp)",
     status: "Draft",
+    category: "KPI",
+    newCategory: "",
     file: null,
   });
 
@@ -462,10 +464,16 @@ export default function DataLayersTab() {
     setIsUploading(true);
     setUploadError("");
 
+    const categoryValue =
+      newLayer.category === "__new"
+        ? newLayer.newCategory.trim() || "Uncategorized"
+        : newLayer.category;
+
     const formData = new FormData();
     formData.append("name", newLayer.name);
     formData.append("type", newLayer.type);
     formData.append("status", newLayer.status);
+    formData.append("category", categoryValue);
     formData.append("file", newLayer.file);
 
     try {
@@ -478,6 +486,8 @@ export default function DataLayersTab() {
         name: "",
         type: "Shapefile (.shp)",
         status: "Draft",
+        category: "KPI",
+        newCategory: "",
         file: null,
       });
       setShowUpload(false);
@@ -499,6 +509,15 @@ export default function DataLayersTab() {
     if (filter === "All") return meta;
     return meta.filter((m) => m.status === filter);
   }, [meta, filter]);
+
+  // Categories (fixed + from metadata)
+  const categories = useMemo(() => {
+    const base = ["KPI", "Tutupan Lahan"];
+    const fromMeta = meta
+      .map((m) => (m.category ? m.category : ""))
+      .filter(Boolean);
+    return Array.from(new Set([...base, ...fromMeta]));
+  }, [meta]);
 
   return (
     <div className="sldlt-root fade-in">
@@ -604,12 +623,17 @@ export default function DataLayersTab() {
                       {m.name}
                     </h3>
                   )}
-                  <div className="flex flex-wrap items-center gap-2 mt-1">
-                    <code className="text-[11px] bg-[#F4F6F5] border border-[#A3D9A5]/50 rounded px-1.5 py-0.5 text-[#2D2D2D]/70">
-                      {m.slug}
-                    </code>
-                    <StatusPill status={m.status} />
-                  </div>
+              <div className="flex flex-wrap items-center gap-2 mt-1">
+                <code className="text-[11px] bg-[#F4F6F5] border border-[#A3D9A5]/50 rounded px-1.5 py-0.5 text-[#2D2D2D]/70">
+                  {m.slug}
+                </code>
+                <StatusPill status={m.status} />
+                {m.category && (
+                  <span className="px-2 py-0.5 text-[11px] rounded-md bg-[#E7EFE9] text-[#154734] border border-[#A3D9A5]/60">
+                    {m.category}
+                  </span>
+                )}
+              </div>
                 </div>
               </div>
 
@@ -795,6 +819,37 @@ export default function DataLayersTab() {
                 {isAdmin && <option>Published</option>}
               </select>
             </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-[#2D2D2D]/70 mb-1">
+              Category
+            </label>
+            <select
+              value={newLayer.category}
+              onChange={(e) =>
+                setNewLayer({ ...newLayer, category: e.target.value })
+              }
+              className="w-full border border-[#A3D9A5]/50 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-[#A3D9A5]"
+            >
+              {categories.map((c) => (
+                <option key={c} value={c}>
+                  {c}
+                </option>
+              ))}
+              <option value="__new">+ Add new category</option>
+            </select>
+            {newLayer.category === "__new" && (
+              <input
+                type="text"
+                value={newLayer.newCategory}
+                onChange={(e) =>
+                  setNewLayer({ ...newLayer, newCategory: e.target.value })
+                }
+                className="mt-2 w-full border border-[#A3D9A5]/50 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-[#A3D9A5]"
+                placeholder="Enter new category"
+              />
+            )}
           </div>
 
           {uploadError && <p className="text-red-500 text-sm">{uploadError}</p>}

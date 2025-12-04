@@ -89,6 +89,10 @@ public class LayerMeta {
     @Column(name = "raw_path")
     private String rawPath;
 
+    /** Category (e.g., KPI, Tutupan Lahan, etc.) */
+    @Column(name = "category")
+    private String category;
+
     /** Legacy public path (optional) */
     @Column(name = "public_path")
     private String publicPath;

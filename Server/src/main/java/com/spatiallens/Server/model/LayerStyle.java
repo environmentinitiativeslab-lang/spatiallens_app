@@ -39,6 +39,14 @@ public class LayerStyle {
     @Column(name = "style_json", nullable = false, columnDefinition = "text")
     private String styleJson;
 
+    /** Optional: lokasi file SLD yang diunggah admin (absolute path) */
+    @Column(name = "sld_path", columnDefinition = "text")
+    private String sldPath;
+
+    /** Optional: nama file SLD asli (untuk referensi) */
+    @Column(name = "sld_filename")
+    private String sldFilename;
+
     @Column(name = "updated_at", nullable = false)
     private Instant updatedAt;
 

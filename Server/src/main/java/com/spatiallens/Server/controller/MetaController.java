@@ -44,6 +44,7 @@ public class MetaController {
             String slug,
             String name,
             String status, // "Draft" | "Published"
+            String category,
             Integer minzoom,
             Integer maxzoom,
             Long featureCount,
@@ -88,6 +89,7 @@ public class MetaController {
                 lm.getSlug(),
                 lm.getName(),
                 lm.getStatus(),
+                lm.getCategory(),
                 lm.getMinzoom(),
                 lm.getMaxzoom(),
                 lm.getFeatureCount(),
@@ -121,6 +123,12 @@ public class MetaController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
         return ResponseEntity.ok(viewOf(lm));
+    }
+
+    /** Distinct categories (admin/editor/viewer). */
+    @GetMapping(path = "/categories", produces = MediaType.APPLICATION_JSON_VALUE)
+    public List<String> categories() {
+        return metaRepo.distinctCategories();
     }
 
     // ---- UPDATE (ADMIN only) ----

@@ -35,10 +35,29 @@ export default function MapPanel() {
   const [addedLayers, setAddedLayers] = useState([]);
   const [visibleLayers, setVisibleLayers] = useState({});
   const [searchQuery, setSearchQuery] = useState("");
+  const [metadataMap, setMetadataMap] = useState({});
+  const [metadataOpen, setMetadataOpen] = useState(false);
+  const [legendMap, setLegendMap] = useState({});
 
   const [adminOn, setAdminOn] = useState(false);
   const [bboxCache, setBboxCache] = useState({});
   const styleCache = useRef({});
+
+  const parseMatchExpression = (expr) => {
+    if (!Array.isArray(expr) || expr[0] !== "match") return null;
+    const getPart = expr[1];
+    if (!Array.isArray(getPart) || getPart[0] !== "get") return null;
+    const field = getPart[1];
+    const pairs = [];
+    for (let i = 2; i < expr.length - 1; i += 2) {
+      const val = expr[i];
+      const col = expr[i + 1];
+      if (val !== undefined && col !== undefined) {
+        pairs.push({ value: String(val), color: String(col) });
+      }
+    }
+    return { field, pairs };
+  };
 
   // Popup state
   const [popupInfo, setPopupInfo] = useState(null);
@@ -162,17 +181,18 @@ export default function MapPanel() {
     if (!raw) return DEFAULT_STYLE;
     try {
       const obj = typeof raw === "string" ? JSON.parse(raw) : raw;
+      const asNum = (v) => {
+        const n = Number(v);
+        return Number.isFinite(n) ? n : undefined;
+      };
       return {
         fillColor: obj?.fillColor || DEFAULT_STYLE.fillColor,
         lineColor: obj?.lineColor || DEFAULT_STYLE.lineColor,
         fillOpacity:
-          Number.isFinite(obj?.fillOpacity) && obj.fillOpacity >= 0
-            ? obj.fillOpacity
-            : DEFAULT_STYLE.fillOpacity,
-        lineWidth:
-          Number.isFinite(obj?.lineWidth) && obj.lineWidth > 0
-            ? obj.lineWidth
-            : DEFAULT_STYLE.lineWidth,
+          asNum(obj?.fillOpacity) !== undefined ? asNum(obj.fillOpacity) : DEFAULT_STYLE.fillOpacity,
+        lineWidth: asNum(obj?.lineWidth) || DEFAULT_STYLE.lineWidth,
+        fillExpression: obj?.fillExpression,
+        lineExpression: obj?.lineExpression,
       };
     } catch {
       return DEFAULT_STYLE;
@@ -192,20 +212,52 @@ export default function MapPanel() {
     }
   };
 
-  const applyLayerStyle = async (slug) => {
-    if (!map.current) return;
-    const style = await fetchStyle(slug);
-    const fillId = `mvt-fill-${slug}`;
-    const lineId = `mvt-line-${slug}`;
-    if (map.current.getLayer(fillId)) {
-      map.current.setPaintProperty(fillId, "fill-color", style.fillColor);
-      map.current.setPaintProperty(fillId, "fill-opacity", style.fillOpacity);
-    }
-    if (map.current.getLayer(lineId)) {
-      map.current.setPaintProperty(lineId, "line-color", style.lineColor);
-      map.current.setPaintProperty(lineId, "line-width", style.lineWidth);
+  const loadMetadataInfo = async (slug) => {
+    try {
+      const info = await api(`/api/layers/${slug}/metadata/info`);
+      setMetadataMap((prev) => ({ ...prev, [slug]: info }));
+    } catch {
+      setMetadataMap((prev) => ({ ...prev, [slug]: null }));
     }
   };
+
+    const updateLegend = (slug, meta, style) => {
+      const match = parseMatchExpression(style.fillExpression || style.lineExpression);
+      let items = [];
+      if (match && match.pairs.length) {
+        items = match.pairs.map((p) => ({ label: p.value, color: p.color }));
+      } else {
+        items = [{ label: meta?.name || slug, color: style.fillColor }];
+      }
+      setLegendMap((prev) => ({
+        ...prev,
+        [slug]: { field: match?.field, items },
+      }));
+    };
+
+    const applyLayerStyle = async (slug, meta) => {
+      if (!map.current) return;
+      const style = await fetchStyle(slug);
+      const fillId = `mvt-fill-${slug}`;
+      const lineId = `mvt-line-${slug}`;
+      if (map.current.getLayer(fillId)) {
+        map.current.setPaintProperty(
+          fillId,
+          "fill-color",
+          style.fillExpression || style.fillColor
+        );
+        map.current.setPaintProperty(fillId, "fill-opacity", style.fillOpacity);
+      }
+        if (map.current.getLayer(lineId)) {
+          map.current.setPaintProperty(
+            lineId,
+            "line-color",
+            style.lineExpression || style.lineColor
+          );
+          map.current.setPaintProperty(lineId, "line-width", style.lineWidth);
+        }
+        updateLegend(slug, meta, style);
+      };
 
   const addMvtLayer = (meta) => {
     if (!map.current) return;
@@ -274,17 +326,19 @@ export default function MapPanel() {
       });
     }
 
-    fetchBbox(slug);
-    applyLayerStyle(slug);
+      fetchBbox(slug);
+    applyLayerStyle(slug, meta);
 
     setAddedLayers((prev) => [
       ...prev,
       { ...meta, _kind: "mvt", _id: slug, _ids: { fillId, lineId, srcId } },
     ]);
     setVisibleLayers((prev) => ({ ...prev, [slug]: true }));
+    loadMetadataInfo(slug);
   };
 
   const handleFeatureClick = (feature, lngLat, layerName, slug) => {
+    if (metadataOpen) setMetadataOpen(false);
     try {
       const properties = feature.properties || {};
       const featureId = feature.id || feature.properties?.id;
@@ -366,19 +420,24 @@ export default function MapPanel() {
     }
   };
 
-  const handleRemoveLayer = (idOrLayer) => {
-    const id =
-      typeof idOrLayer === "string"
-        ? idOrLayer
-        : idOrLayer._id || slugOf(idOrLayer);
-    const item = addedLayers.find((l) => (l._id || slugOf(l)) === id);
-    if (item?._kind === "mvt") removeMvtLayer(id);
-    setAddedLayers((prev) => prev.filter((l) => (l._id || slugOf(l)) !== id));
-    setVisibleLayers((prev) => {
-      const { [id]: _omit, ...rest } = prev;
-      return rest;
-    });
-  };
+    const handleRemoveLayer = (idOrLayer) => {
+      const id =
+        typeof idOrLayer === "string"
+          ? idOrLayer
+          : idOrLayer._id || slugOf(idOrLayer);
+      const item = addedLayers.find((l) => (l._id || slugOf(l)) === id);
+      if (item?._kind === "mvt") removeMvtLayer(id);
+      setAddedLayers((prev) => prev.filter((l) => (l._id || slugOf(l)) !== id));
+      setVisibleLayers((prev) => {
+        const { [id]: _omit, ...rest } = prev;
+        return rest;
+      });
+      setLegendMap((prev) => {
+        const next = { ...prev };
+        delete next[id];
+        return next;
+      });
+    };
 
   const toggleLayerVisibility = (id) => {
     if (!map.current) return;
@@ -487,6 +546,13 @@ export default function MapPanel() {
         searchQuery={searchQuery}
         setSearchQuery={setSearchQuery}
         handleAddLayer={handleAddLayer}
+        metadataMap={metadataMap}
+        metadataOpen={metadataOpen}
+        legendMap={legendMap}
+        onMetadataToggle={(open) => {
+          setMetadataOpen(open);
+          if (open) setPopupInfo(null);
+        }}
       />
 
       {/* Map Controls */}

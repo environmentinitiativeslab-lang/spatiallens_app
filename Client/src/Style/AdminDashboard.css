@@ -100,3 +100,135 @@
 ::-webkit-scrollbar-track {
   background: var(--slad-bg);
 }
+
+/* StylingTab – SLD legend panel */
+.slad-root .slad-sldPanel {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid color-mix(in srgb, var(--slad-accent) 60%, white 40%);
+  background: #f7fbf7;
+  border-radius: 10px;
+}
+.slad-root .slad-sldHeader {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.slad-root .slad-sldTitle {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--slad-green);
+}
+.slad-root .slad-sldSubtitle {
+  font-size: 12px;
+  color: color-mix(in srgb, var(--slad-text) 70%, white 30%);
+}
+.slad-root .slad-sldField {
+  font-size: 12px;
+  color: color-mix(in srgb, var(--slad-text) 75%, white 25%);
+}
+.slad-root .slad-sldField span {
+  font-weight: 700;
+  color: var(--slad-green);
+}
+.slad-root .slad-sldLegend {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 10px;
+  max-height: 320px;
+  overflow: auto;
+}
+.slad-root .slad-sldLegend--expanded {
+  max-height: 520px;
+}
+.slad-root .slad-sldRow {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid color-mix(in srgb, var(--slad-accent) 50%, white 50%);
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 4px 10px var(--slad-shadow);
+}
+.slad-root .slad-sldLabel {
+  font-size: 12px;
+  color: var(--slad-text);
+  line-height: 1.3;
+}
+.slad-root .slad-sldColor {
+  height: 36px;
+  width: 64px;
+  border: 1px solid color-mix(in srgb, var(--slad-accent) 60%, white 40%);
+  border-radius: 6px;
+  background: #fff;
+  padding: 2px;
+  cursor: pointer;
+}
+.slad-root .slad-sldResetBtn {
+  font-size: 11px;
+  color: var(--slad-green);
+  border: 1px solid color-mix(in srgb, var(--slad-accent) 60%, white 40%);
+  background: #fff;
+  padding: 6px 8px;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+}
+.slad-root .slad-sldResetBtn:hover {
+  background: color-mix(in srgb, var(--slad-accent) 20%, #fff 80%);
+}
+.slad-root .slad-sldEmpty {
+  font-size: 12px;
+  color: color-mix(in srgb, var(--slad-text) 60%, white 40%);
+}
+.slad-root .slad-sldActions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.slad-root .slad-sldSearch {
+  min-width: 200px;
+  padding: 8px 10px;
+  border: 1px solid color-mix(in srgb, var(--slad-accent) 50%, white 50%);
+  border-radius: 6px;
+  font-size: 12px;
+  background: #fff;
+}
+.slad-root .slad-sldToggle {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+  font-size: 12px;
+  color: var(--slad-text);
+}
+.slad-root .slad-sldResetAll {
+  font-size: 12px;
+  color: var(--slad-green);
+  border: 1px solid color-mix(in srgb, var(--slad-accent) 60%, white 40%);
+  background: #fff;
+  padding: 6px 10px;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+}
+.slad-root .slad-sldResetAll:hover {
+  background: color-mix(in srgb, var(--slad-accent) 20%, #fff 80%);
+}
+.slad-root .slad-sldViewAll {
+  align-self: flex-start;
+  margin-top: 4px;
+  font-size: 12px;
+  color: var(--slad-green);
+  border: 1px solid color-mix(in srgb, var(--slad-accent) 60%, white 40%);
+  background: #fff;
+  padding: 6px 10px;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+}
+.slad-root .slad-sldViewAll:hover {
+  background: color-mix(in srgb, var(--slad-accent) 20%, #fff 80%);
+}

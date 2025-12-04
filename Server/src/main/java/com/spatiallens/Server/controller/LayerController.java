@@ -5,11 +5,22 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.util.Locale;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 
+import javax.xml.XMLConstants;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathConstants;
+import javax.xml.xpath.XPathFactory;
+import javax.xml.namespace.NamespaceContext;
+
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -33,6 +44,10 @@ import com.spatiallens.Server.repository.LayerMetaRepository;
 import com.spatiallens.Server.repository.LayerStyleRepository;
 import com.spatiallens.Server.repository.LayerUploadRepository;
 import com.spatiallens.Server.service.LayerImportService;
+
+import org.w3c.dom.Document;
+import org.w3c.dom.Node;
+import java.util.Iterator;
 
 @RestController
 @RequestMapping("/api/layers")
@@ -63,8 +78,15 @@ public class LayerController {
     @Value("${upload.private-dir:uploads/private}")
     private String privateDir;
 
+    @Value("${metadata.dir:${upload.dir}/metadata}")
+    private String metadataDir;
+
     private static final String STATUS_DRAFT = "Draft";
     private static final String STATUS_PUBLISHED = "Published";
+
+    private Path metadataPath(String slug) {
+        return Paths.get(metadataDir, slug + ".xml");
+    }
 
     /*
      * =========================
@@ -88,6 +110,7 @@ public class LayerController {
             @RequestParam("name") String name,
             @RequestParam(value = "type", required = false) String type,
             @RequestParam(value = "status", required = false) String status,
+            @RequestParam(value = "category", required = false) String category,
             @RequestParam("file") MultipartFile file) {
 
         String cleanName = clean(name);
@@ -102,6 +125,9 @@ public class LayerController {
         String ext = extOf(original);
         String inferredType = inferType(type, ext, file.getContentType());
         String reqStatus = ("Published".equalsIgnoreCase(status) ? STATUS_PUBLISHED : STATUS_DRAFT);
+        String cleanCategory = clean(category);
+        if (cleanCategory.isBlank())
+            cleanCategory = "Uncategorized";
 
         // siapkan folder simpan
         Path pubDir = Paths.get(publicDir);
@@ -138,6 +164,7 @@ public class LayerController {
                 .name(cleanName)
                 .type(inferredType)
                 .status(reqStatus)
+                .category(cleanCategory)
                 .date(LocalDate.now().toString())
                 .slug(slug)
                 .publicPath("/uploads/" + publicName)
@@ -268,6 +295,88 @@ public class LayerController {
 
     /*
      * =========================
+     * METADATA XML PER LAYER
+     * =========================
+     */
+    public record ParsedMetadata(
+            String title,
+            String description,
+            String summary,
+            String credits,
+            double[] bbox,
+            String usage,
+            String limitation,
+            String scaleDenominator,
+            String spatialReferenceCode) {
+    }
+
+    @PostMapping(path = "/{slug}/metadata/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PreAuthorize("hasAnyRole('ADMIN','EDITOR')")
+    public ResponseEntity<?> uploadMetadataXml(@PathVariable String slug, @RequestParam("file") MultipartFile file) {
+        if (file == null || file.isEmpty()) {
+            return bad("File is empty.");
+        }
+        String name = file.getOriginalFilename();
+        if (name == null || !name.toLowerCase(Locale.ROOT).endsWith(".xml")) {
+            return bad("Only .xml files are allowed.");
+        }
+        LayerMeta lm = metaRepo.findBySlug(slug).orElse(null);
+        if (lm == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(msg("Layer not found."));
+        }
+        try {
+            Path dir = Paths.get(metadataDir).toAbsolutePath();
+            Files.createDirectories(dir);
+            Path target = dir.resolve(slug + ".xml");
+            try (var in = file.getInputStream()) {
+                Files.copy(in, target, StandardCopyOption.REPLACE_EXISTING);
+            }
+            return ResponseEntity.ok().build();
+        } catch (IOException e) {
+            return ResponseEntity.internalServerError().body(msg("Failed to save metadata: " + e.getMessage()));
+        }
+    }
+
+    @GetMapping(path = "/{slug}/metadata/xml", produces = MediaType.TEXT_XML_VALUE)
+    @PreAuthorize("hasAnyRole('ADMIN','EDITOR')")
+    public ResponseEntity<Resource> getMetadataXml(@PathVariable String slug) {
+        LayerMeta lm = metaRepo.findBySlug(slug).orElse(null);
+        if (lm == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+        Path p = Paths.get(metadataDir).toAbsolutePath().resolve(slug + ".xml");
+        if (!Files.exists(p) || !Files.isRegularFile(p)) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+        try {
+            Resource res = new InputStreamResource(Files.newInputStream(p));
+            return ResponseEntity.ok().contentType(MediaType.TEXT_XML).body(res);
+        } catch (IOException e) {
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    @GetMapping(path = "/{slug}/metadata/info", produces = MediaType.APPLICATION_JSON_VALUE)
+    @PreAuthorize("hasAnyRole('ADMIN','EDITOR','VIEWER')")
+    public ResponseEntity<?> getMetadataInfo(@PathVariable String slug) {
+        LayerMeta lm = metaRepo.findBySlug(slug).orElse(null);
+        if (lm == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+        Path p = Paths.get(metadataDir).toAbsolutePath().resolve(slug + ".xml");
+        if (!Files.exists(p) || !Files.isRegularFile(p)) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(msg("Metadata file not found"));
+        }
+        try (var in = Files.newInputStream(p)) {
+            ParsedMetadata parsed = parseMetadataXml(in);
+            return ResponseEntity.ok(parsed);
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body(msg("Failed to parse metadata: " + e.getMessage()));
+        }
+    }
+
+    /*
+     * =========================
      * Helpers
      * =========================
      */
@@ -340,5 +449,129 @@ public class LayerController {
 
     private String safeIdent(String ident) {
         return ident.replaceAll("[^A-Za-z0-9_]", "_");
+    }
+
+    private ParsedMetadata parseMetadataXml(java.io.InputStream input) throws Exception {
+        DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+        dbf.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
+        dbf.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
+        dbf.setNamespaceAware(true);
+        DocumentBuilder db = dbf.newDocumentBuilder();
+        Document doc = db.parse(input);
+        XPath xp = XPathFactory.newInstance().newXPath();
+        xp.setNamespaceContext(nsContext());
+
+        String title = pickString(xp, doc,
+                "//gmd:title//gco:CharacterString/text()",
+                "//title/text()",
+                "//dataIdInfo/idCitation/resTitle/text()");
+        String desc = pickString(xp, doc,
+                "//gmd:abstract//gco:CharacterString/text()",
+                "//abstract/text()",
+                "//description/text()",
+                "//dataIdInfo/idAbs/text()");
+        String summary = pickString(xp, doc,
+                "//gmd:purpose//gco:CharacterString/text()",
+                "//purpose/text()",
+                "//dataIdInfo/idPurp/text()");
+        String credits = pickString(xp, doc,
+                "//gmd:credit//gco:CharacterString/text()",
+                "//credit/text()",
+                "//dataIdInfo/idCredit/text()");
+        String usage = pickString(xp, doc,
+                "//gmd:resourceSpecificUsage//gmd:usage//gco:CharacterString/text()",
+                "//usage/text()",
+                "//dataIdInfo/resConst/Consts/useLimit/text()");
+        String limitation = pickString(xp, doc,
+                "//gmd:MD_Constraints/gmd:useLimitation//gco:CharacterString/text()",
+                "//useLimitation/text()",
+                "//idinfo/useconst/text()");
+        String scale = pickString(xp, doc,
+                "//gmd:equivalentScale//gmd:denominator//gco:Integer/text()",
+                "//denominator/text()");
+        String sref = pickString(xp, doc,
+                "//gmd:RS_Identifier/gmd:code//gco:CharacterString/text()",
+                "//gmd:referenceSystemIdentifier//gmd:code//gco:CharacterString/text()",
+                "//referenceSystemIdentifier//code//text()",
+                "//refSysInfo//refSysID//identCode/@code");
+
+        Double west = pickDouble(xp, doc,
+                "//gmd:westBoundLongitude//gco:Decimal/text()",
+                "//westBoundLongitude/text()");
+        Double east = pickDouble(xp, doc,
+                "//gmd:eastBoundLongitude//gco:Decimal/text()",
+                "//eastBoundLongitude/text()");
+        Double south = pickDouble(xp, doc,
+                "//gmd:southBoundLatitude//gco:Decimal/text()",
+                "//southBoundLatitude/text()");
+        Double north = pickDouble(xp, doc,
+                "//gmd:northBoundLatitude//gco:Decimal/text()",
+                "//northBoundLatitude/text()");
+
+        double[] bbox = null;
+        if (west != null && east != null && south != null && north != null) {
+            bbox = new double[] { west, south, east, north };
+        }
+
+        return new ParsedMetadata(
+                emptyToNull(title),
+                emptyToNull(desc),
+                emptyToNull(summary),
+                emptyToNull(credits),
+                bbox,
+                emptyToNull(usage),
+                emptyToNull(limitation),
+                emptyToNull(scale),
+                emptyToNull(sref));
+    }
+
+    private String pickString(XPath xp, Document doc, String... paths) throws Exception {
+        for (String p : paths) {
+            String v = (String) xp.evaluate(p, doc, XPathConstants.STRING);
+            if (v != null && !v.isBlank()) {
+                return v.trim();
+            }
+        }
+        return null;
+    }
+
+    private Double pickDouble(XPath xp, Document doc, String... paths) throws Exception {
+        for (String p : paths) {
+            String v = (String) xp.evaluate(p, doc, XPathConstants.STRING);
+            if (v != null && !v.isBlank()) {
+                try {
+                    return Double.parseDouble(v.trim());
+                } catch (NumberFormatException ignore) {
+                }
+            }
+        }
+        return null;
+    }
+
+    private String emptyToNull(String s) {
+        return (s == null || s.isBlank()) ? null : s;
+    }
+
+    private NamespaceContext nsContext() {
+        return new NamespaceContext() {
+            @Override
+            public String getNamespaceURI(String prefix) {
+                return switch (prefix) {
+                    case "gmd" -> "http://www.isotc211.org/2005/gmd";
+                    case "gco" -> "http://www.isotc211.org/2005/gco";
+                    default -> XMLConstants.NULL_NS_URI;
+                };
+            }
+
+            @Override
+            public String getPrefix(String namespaceURI) {
+                return null;
+            }
+
+            @Override
+            public Iterator<String> getPrefixes(String namespaceURI) {
+                return null;
+            }
+        };
     }
 }

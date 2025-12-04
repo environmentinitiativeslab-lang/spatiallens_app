@@ -13,6 +13,10 @@ function MetadataTab() {
   const [selected, setSelected] = useState("");
   const [meta, setMeta] = useState(null);
   const [status, setStatus] = useState("");
+  const [xmlPreview, setXmlPreview] = useState("");
+  const [file, setFile] = useState(null);
+  const [uploading, setUploading] = useState(false);
+  const [parsed, setParsed] = useState(null);
 
   const api = useMemo(
     () => async (path) => {
@@ -51,11 +55,47 @@ function MetadataTab() {
       const detail = await api(`/api/layers/meta/${slug}`);
       setMeta(detail);
       setStatus("");
+      await loadXml(slug);
+      await loadParsed(slug);
     } catch (err) {
       setMeta(null);
-      setStatus(
-        "Metadata belum tersedia untuk layer ini. Metadata dibuat saat upload/import layer."
-      );
+      setXmlPreview("");
+      setParsed(null);
+      setStatus("Metadata belum tersedia untuk layer ini.");
+    }
+  };
+
+  const loadXml = async (slug) => {
+    if (!slug) return;
+    try {
+      const res = await fetch(`${API_BASE}/api/layers/${slug}/metadata/xml`, {
+        headers: authHeaders(),
+      });
+      if (!res.ok) {
+        setXmlPreview("");
+        return;
+      }
+      const text = await res.text();
+      setXmlPreview(text || "");
+    } catch {
+      setXmlPreview("");
+    }
+  };
+
+  const loadParsed = async (slug) => {
+    if (!slug) return;
+    try {
+      const res = await fetch(`${API_BASE}/api/layers/${slug}/metadata/info`, {
+        headers: authHeaders(),
+      });
+      if (!res.ok) {
+        setParsed(null);
+        return;
+      }
+      const data = await res.json();
+      setParsed(data);
+    } catch {
+      setParsed(null);
     }
   };
 
@@ -66,6 +106,47 @@ function MetadataTab() {
   useEffect(() => {
     if (selected) loadMeta(selected);
   }, [selected]);
+
+  const handleUpload = async (e) => {
+    e.preventDefault();
+    if (!selected || !file) {
+      setStatus("Pilih layer dan file .xml terlebih dulu.");
+      return;
+    }
+    if (!file.name.toLowerCase().endsWith(".xml")) {
+      setStatus("Hanya file .xml yang diizinkan.");
+      return;
+    }
+    setUploading(true);
+    setStatus("Uploading metadata...");
+    try {
+      const form = new FormData();
+      form.append("file", file);
+      const res = await fetch(
+        `${API_BASE}/api/layers/${selected}/metadata/upload`,
+        {
+          method: "POST",
+          headers: authHeaders(),
+          body: form,
+        }
+      );
+      if (!res.ok) {
+        let msg = `${res.status} ${res.statusText}`;
+        try {
+          const d = await res.json();
+          if (d?.message) msg = d.message;
+        } catch {}
+        throw new Error(msg);
+      }
+      setStatus("Upload metadata berhasil.");
+      setFile(null);
+      await loadMeta(selected);
+    } catch (err) {
+      setStatus(`Upload gagal: ${err.message}`);
+    } finally {
+      setUploading(false);
+    }
+  };
 
   const formatBBox = (bbox) => {
     if (!Array.isArray(bbox) || bbox.length !== 4) return "-";
@@ -104,6 +185,35 @@ function MetadataTab() {
               {status}
             </div>
           </div>
+
+          <form
+            className="slmeta-upload flex flex-col gap-3 border border-dashed border-[#A3D9A5]/70 rounded-md p-3 bg-[#F4F6F5]/60"
+            onSubmit={handleUpload}
+          >
+            <div className="text-sm text-[#154734] font-semibold">
+              Upload Metadata (.xml)
+            </div>
+            <input
+              type="file"
+              accept=".xml,text/xml"
+              onChange={(e) => setFile(e.target.files?.[0] || null)}
+              className="text-sm"
+            />
+            <div className="flex gap-2">
+              <button
+                type="submit"
+                className="slhp-btnPrimary text-sm px-4 py-2"
+                disabled={uploading}
+              >
+                {uploading ? "Uploading..." : "Upload Metadata"}
+              </button>
+              {file && (
+                <span className="text-xs text-[#2D2D2D]/70">
+                  {file.name}
+                </span>
+              )}
+            </div>
+          </form>
 
           {meta ? (
             <div className="grid grid-cols-2 gap-4 text-sm text-[#154734]">
@@ -156,11 +266,89 @@ function MetadataTab() {
                 </span>
                 <span>{meta.updatedAt ?? "-"}</span>
               </div>
+
+              {parsed && (
+                <>
+                  <div className="slmeta-field flex flex-col">
+                    <span className="slmeta-label text-[#2D2D2D]/70 text-xs font-semibold">
+                      Title
+                    </span>
+                    <span>{parsed.title || "-"}</span>
+                  </div>
+                  <div className="slmeta-field flex flex-col">
+                    <span className="slmeta-label text-[#2D2D2D]/70 text-xs font-semibold">
+                      Description
+                    </span>
+                    <span>{parsed.description || "-"}</span>
+                  </div>
+                  <div className="slmeta-field flex flex-col">
+                    <span className="slmeta-label text-[#2D2D2D]/70 text-xs font-semibold">
+                      Summary
+                    </span>
+                    <span>{parsed.summary || "-"}</span>
+                  </div>
+                  <div className="slmeta-field flex flex-col">
+                    <span className="slmeta-label text-[#2D2D2D]/70 text-xs font-semibold">
+                      Credits
+                    </span>
+                    <span>{parsed.credits || "-"}</span>
+                  </div>
+                  <div className="slmeta-field flex flex-col">
+                    <span className="slmeta-label text-[#2D2D2D]/70 text-xs font-semibold">
+                      Bounding Box (lon/lat)
+                    </span>
+                    <span>
+                      {Array.isArray(parsed.bbox) && parsed.bbox.length === 4
+                        ? parsed.bbox.map((n) => Number(n).toFixed(4)).join(", ")
+                        : "-"}
+                    </span>
+                  </div>
+                  <div className="slmeta-field flex flex-col">
+                    <span className="slmeta-label text-[#2D2D2D]/70 text-xs font-semibold">
+                      Specific Usage
+                    </span>
+                    <span>{parsed.usage || "-"}</span>
+                  </div>
+                  <div className="slmeta-field flex flex-col">
+                    <span className="slmeta-label text-[#2D2D2D]/70 text-xs font-semibold">
+                      Limitation
+                    </span>
+                    <span>{parsed.limitation || "-"}</span>
+                  </div>
+                  <div className="slmeta-field flex flex-col">
+                    <span className="slmeta-label text-[#2D2D2D]/70 text-xs font-semibold">
+                      Scale Denominator
+                    </span>
+                    <span>{parsed.scaleDenominator || "-"}</span>
+                  </div>
+                  <div className="slmeta-field flex flex-col">
+                    <span className="slmeta-label text-[#2D2D2D]/70 text-xs font-semibold">
+                      Spatial Reference (code)
+                    </span>
+                    <span>{parsed.spatialReferenceCode || "-"}</span>
+                  </div>
+                </>
+              )}
+
+              <div className="slmeta-field flex flex-col col-span-2">
+                <span className="slmeta-label text-[#2D2D2D]/70 text-xs font-semibold">
+                  Metadata XML
+                </span>
+                {xmlPreview ? (
+                  <pre className="whitespace-pre-wrap text-xs bg-[#F4F6F5] border border-[#A3D9A5]/60 rounded-md p-2 max-h-64 overflow-auto">
+                    {xmlPreview}
+                  </pre>
+                ) : (
+                  <span className="text-xs text-[#2D2D2D]/70">
+                    Belum ada file metadata untuk layer ini.
+                  </span>
+                )}
+              </div>
             </div>
           ) : (
             <div className="text-sm text-[#2D2D2D]/70">
-              Metadata belum tersedia untuk layer ini. Metadata dibuat otomatis saat
-              upload/import layer. Pastikan layer sudah diimport/published.
+              Metadata belum tersedia untuk layer ini. Upload file metadata XML
+              per layer jika belum ada.
             </div>
           )}
         </div>
