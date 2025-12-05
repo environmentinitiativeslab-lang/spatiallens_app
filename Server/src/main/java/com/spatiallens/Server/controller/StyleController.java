@@ -1,5 +1,4 @@
-﻿// src/main/java/com/spatiallens/Server/controller/StyleController.java
-package com.spatiallens.Server.controller;
+﻿package com.spatiallens.Server.controller;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -126,13 +125,12 @@ public class StyleController {
         try {
             h.setContentLength(res.contentLength());
         } catch (java.io.IOException ignored) {
-            // If length cannot be resolved, skip setting it to avoid throwing here.
         }
         h.setContentDispositionFormData("attachment", p.getFileName().toString());
         return new ResponseEntity<>(res, h, HttpStatus.OK);
     }
 
-    /** DELETE style akan fallback ke default saat GET berikutnya. */
+    /** DELETE style untuk fallback ke default. */
     @DeleteMapping("/{slug}/style")
     public ResponseEntity<Void> deleteStyle(@PathVariable String slug) {
         service.deleteStyle(slug);
@@ -157,5 +155,3 @@ public class StyleController {
         return java.util.Map.of("message", m);
     }
 }
-
-

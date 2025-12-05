@@ -78,10 +78,15 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
+                        // API Docs / Swagger (admin only)
+                        .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html", "/api/api-docs/**")
+                        .hasRole("ADMIN")
+
                         // PUBLIC
                         .requestMatchers(HttpMethod.GET, "/batas-admin/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/uploads/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/tiles/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/public/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/layers/meta/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/layers/*/style").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/styles/**").permitAll()

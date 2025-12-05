@@ -432,16 +432,18 @@ export default function DataLayersTab() {
       const results = await api(`/api/admin/layers/fix-all-whitelist`, {
         method: "POST",
       });
-      
-      const fixedCount = results.filter(r => r.message === "Fixed").length;
-      const skippedCount = results.filter(r => r.message.includes("skipped")).length;
-      
+
+      const fixedCount = results.filter((r) => r.message === "Fixed").length;
+      const skippedCount = results.filter((r) =>
+        r.message.includes("skipped")
+      ).length;
+
       addToast({
         type: "success",
         title: "Properties Fixed",
         message: `Fixed ${fixedCount} layer(s), skipped ${skippedCount}`,
       });
-      
+
       await fetchMeta();
     } catch (err) {
       addToast({
@@ -556,16 +558,16 @@ export default function DataLayersTab() {
         </div>
 
         <div className="flex items-center gap-2">
-          <button
+          {/* <button
             type="button"
             onClick={fetchMeta}
             className="px-3 py-2 rounded-md text-sm border border-[#A3D9A5]/60 text-[#154734] hover:bg-[#A3D9A5]/20"
             title="Refresh"
           >
             Refresh
-          </button>
+          </button> */}
 
-          {isAdmin && (
+          {/* {isAdmin && (
             <button
               type="button"
               onClick={handleFixAllWhitelist}
@@ -575,7 +577,7 @@ export default function DataLayersTab() {
             >
               {isFixing ? "Fixing..." : "Fix Properties"}
             </button>
-          )}
+          )} */}
 
           {canEdit && (
             <button
@@ -645,7 +647,7 @@ export default function DataLayersTab() {
                 )}
                 {Number.isFinite(m.minzoom) && Number.isFinite(m.maxzoom) && (
                   <span className="px-2 py-1 bg-[#F4F6F5] border border-[#A3D9A5]/50 rounded-md">
-                    z{m.minzoom}–{m.maxzoom}
+                    z{m.minzoom}-{m.maxzoom}
                   </span>
                 )}
                 {m.updatedAt && (
