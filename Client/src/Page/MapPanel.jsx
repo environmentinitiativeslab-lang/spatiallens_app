@@ -27,7 +27,10 @@ export default function MapPanel() {
   const map = useRef(null);
   const popupRef = useRef(null);
 
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(() => {
+    if (typeof window === "undefined") return true;
+    return window.innerWidth >= 1024;
+  });
   const [addLayerModalOpen, setAddLayerModalOpen] = useState(false);
   const [coords, setCoords] = useState({ lat: 0, lng: 0 });
 
@@ -112,6 +115,16 @@ export default function MapPanel() {
       } catch {}
       map.current = null;
     };
+  }, []);
+
+  // Auto-collapse sidebar on smaller screens to keep map visible
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth < 1024) setSidebarOpen(false);
+    };
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
   }, []);
 
   // Close popup when clicking outside it

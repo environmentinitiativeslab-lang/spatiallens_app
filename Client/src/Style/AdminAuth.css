@@ -246,3 +246,52 @@
 .slaa-link:hover {
   color: #103827;
 }
+
+@media (max-width: 768px) {
+  .slaa-root {
+    padding: 18px;
+  }
+
+  .slaa-card {
+    width: 100%;
+    grid-template-columns: 1fr;
+  }
+
+  .slaa-left,
+  .slaa-right {
+    padding: 22px;
+  }
+
+  .slaa-roles {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 540px) {
+  .slaa-root {
+    padding: 14px;
+  }
+
+  .slaa-card {
+    border-radius: 14px;
+  }
+
+  .slaa-left,
+  .slaa-right {
+    padding: 18px;
+  }
+
+  .slaa-tabs {
+    flex-wrap: wrap;
+  }
+
+  .slaa-tab {
+    flex: 1 1 140px;
+    justify-content: center;
+    text-align: center;
+  }
+
+  .slaa-btnPrimary {
+    font-size: 14px;
+  }
+}

@@ -411,3 +411,44 @@
   scrollbar-width: thin;
   scrollbar-color: #154734 #e7efe9;
 }
+
+@media (max-width: 1024px) {
+  .slhp-heroGlobe {
+    width: 320px;
+    height: 320px;
+    margin: 0 auto;
+  }
+
+  .slhp-collabGrid {
+    gap: 14px;
+  }
+}
+
+@media (max-width: 768px) {
+  .slhp-heroGlobe {
+    width: 260px;
+    height: 260px;
+  }
+
+  .slhp-collabThumb {
+    height: 160px;
+  }
+
+  .slhp-partnerBadge {
+    padding: 10px 12px;
+  }
+}
+
+@media (max-width: 640px) {
+  .slhp-collabGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .slhp-collabThumb {
+    height: 150px;
+  }
+
+  .slhp-partnerBadge {
+    gap: 8px;
+  }
+}

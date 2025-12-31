@@ -328,18 +328,7 @@ export default function LayerSidebar({
           }}
         >
           <div
-            className="pointer-events-auto"
-            style={{
-              position: "absolute",
-              left: "22px",
-              top: "110px",
-              width: "680px",
-              background: "white",
-              border: "1px solid rgba(21,71,52,0.2)",
-              borderRadius: "18px",
-              boxShadow: "0 20px 50px rgba(0,0,0,0.18)",
-              overflow: "hidden",
-            }}
+            className="slmp-metaModal"
             onClick={(e) => e.stopPropagation()}
           >
             <div
@@ -416,19 +405,7 @@ export default function LayerSidebar({
           onClick={() => setLegendModal({ open: false, layerId: null })}
         >
           <div
-            className="pointer-events-auto"
-            style={{
-              position: "absolute",
-              left: "22px",
-              top: "110px",
-              width: "420px",
-              background: "white",
-              border: "1px solid rgba(21,71,52,0.2)",
-              borderRadius: "18px",
-              boxShadow: "0 20px 50px rgba(0,0,0,0.18)",
-              maxHeight: "70vh",
-              overflow: "hidden",
-            }}
+            className="slmp-legendModal"
             onClick={(e) => e.stopPropagation()}
           >
             <div

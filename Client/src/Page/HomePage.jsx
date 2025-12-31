@@ -1,5 +1,6 @@
 ﻿import React from "react";
 import { Layers, Radio, Compass } from "lucide-react";
+import { Link } from "react-router-dom";
 import "../Style/HomePage.css";
 import heroVideo from "../assets/video/Video_Highlight.mp4";
 import HomeNavbar from "../Components/HomeNavbar";
@@ -34,22 +35,22 @@ function HomePage() {
           <div className="slhp-heroVideo__overlay" />
         </div>
 
-        <div className="container mx-auto px-20 pt-28 pb-20 grid md:grid-cols-2 gap-16 items-center relative z-10">
-          <div className="slhp-heroPanel space-y-6 slhp-animSlideUp">
+        <div className="container mx-auto px-6 md:px-10 lg:px-20 pt-24 md:pt-28 pb-16 md:pb-20 grid md:grid-cols-2 gap-10 md:gap-16 items-center relative z-10">
+          <div className="slhp-heroPanel space-y-6 slhp-animSlideUp text-center md:text-left">
             <h1 className="slhp-heroTitle">
               Mapping Connections
               <br />
               Across the Living World
             </h1>
-            <p className="text-white/80 text-lg max-w-md drop-shadow">
-              Experience spatial harmony with global clarity — Spatial Lens
+            <p className="text-white/80 text-lg max-w-2xl md:max-w-md drop-shadow mx-auto md:mx-0">
+              Experience spatial harmony with global clarity - Spatial Lens
               helps you see data as flowing stories across continents.
             </p>
-            <div className="flex gap-4 mt-4">
-              <a href="/map" className="slhp-btnPrimary">
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mt-4 justify-center md:justify-start">
+              <a href="/map" className="slhp-btnPrimary w-full sm:w-auto text-center">
                 Map Panel
               </a>
-              <a href="#docs" className="slhp-btnOutline">
+              <a href="#docs" className="slhp-btnOutline w-full sm:w-auto text-center">
                 Learn More
               </a>
             </div>
@@ -68,7 +69,7 @@ function HomePage() {
       </section>
 
       <section id="collab" className="slhp-collab slhp-animFadeIn">
-        <div className="container mx-auto px-20 py-16">
+        <div className="container mx-auto px-6 md:px-10 lg:px-20 py-12 md:py-16">
           <div className="text-center mb-10 space-y-2">
             <h2 className="slhp-collabTitle">Environment Initiatives Lab</h2>
             <p className="slhp-collabLead">
@@ -154,7 +155,7 @@ function HomePage() {
       </section>
 
       <section id="features" className="py-20 bg-[#F4F6F5] slhp-animFadeIn">
-        <div className="container mx-auto px-20 text-center">
+        <div className="container mx-auto px-6 md:px-10 lg:px-20 text-center">
           <h2 className="text-3xl font-bold mb-3 text-[#2D2D2D]">
             Designed for Public Map Visitors
           </h2>
@@ -186,7 +187,7 @@ function HomePage() {
         id="about"
         className="py-20 bg-white border-t border-[#A3D9A5]/60 slhp-animFadeIn"
       >
-        <div className="container mx-auto px-20 grid md:grid-cols-2 gap-20 items-center">
+        <div className="container mx-auto px-6 md:px-10 lg:px-20 grid md:grid-cols-2 gap-12 md:gap-20 items-center">
           <div className="slhp-geogrid slhp-animScaleIn" aria-hidden="true">
             <div className="slhp-aboutGrid" />
             <div className="slhp-aboutFlow" />
@@ -202,9 +203,9 @@ function HomePage() {
               attributes, legends, and metadata effortlessly, while content
               stays well managed.
             </p>
-            <a href="#contact" className="slhp-btnPrimary inline-block">
+            <Link to="/contact" className="slhp-btnPrimary inline-block">
               Contact Us
-            </a>
+            </Link>
           </div>
         </div>
       </section>

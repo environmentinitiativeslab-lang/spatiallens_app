@@ -4,6 +4,8 @@ import HomePage from "./Page/HomePage.jsx";
 import MapPanel from "./Page/MapPanel.jsx";
 import AdminDashboard from "./Page/AdminDashboard.jsx";
 import AdminAuth from "./Page/AdminAuth.jsx";
+import AboutUs from "./Page/AboutUs.jsx";
+import Contact from "./Page/Contact.jsx";
 
 // simple guard: require login + (optional) roles
 function ProtectedRoute({ element, roles }) {
@@ -24,6 +26,8 @@ export default function App() {
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/map" element={<MapPanel />} />
+        <Route path="/about" element={<AboutUs />} />
+        <Route path="/contact" element={<Contact />} />
         <Route path="/admin/auth" element={<AdminAuth />} />
         <Route
           path="/admin"

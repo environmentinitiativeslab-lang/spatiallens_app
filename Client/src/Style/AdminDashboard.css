@@ -232,3 +232,40 @@
 .slad-root .slad-sldViewAll:hover {
   background: color-mix(in srgb, var(--slad-accent) 20%, #fff 80%);
 }
+
+@media (max-width: 1024px) {
+  .slad-root .slad-sldLegend {
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  }
+
+  .slad-root .slad-sldRow {
+    grid-template-columns: 1fr auto;
+  }
+}
+
+@media (max-width: 768px) {
+  .slad-root .slad-sldLegend {
+    grid-template-columns: 1fr;
+  }
+
+  .slad-root .slad-sldRow {
+    grid-template-columns: 1fr;
+    text-align: left;
+  }
+
+  .slad-root .slad-sldActions {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .slad-root .slad-sldSearch {
+    width: 100%;
+  }
+
+  .slad-root .slad-sldResetBtn,
+  .slad-root .slad-sldResetAll,
+  .slad-root .slad-sldViewAll {
+    width: 100%;
+    text-align: center;
+  }
+}

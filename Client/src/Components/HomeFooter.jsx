@@ -1,4 +1,5 @@
 import React from "react";
+import { Link } from "react-router-dom";
 
 function HomeFooter() {
   return (
@@ -6,18 +7,19 @@ function HomeFooter() {
       id="contact"
       className="slhp-footer bg-[#E7EFE9]/50 border-t border-[#A3D9A5]/60 pt-16 pb-10 slhp-animFadeIn"
     >
-      <div className="container mx-auto px-20 grid md:grid-cols-12 gap-12">
+      <div className="container mx-auto px-6 md:px-10 lg:px-20 grid md:grid-cols-12 gap-12">
         <div className="md:col-span-4 space-y-3">
           <h3 className="text-xl font-bold text-[#154734]">Spatial Lens</h3>
           <p className="text-sm text-[#2D2D2D]/70">
-            Calm meets clarity — mapping tools that bring balance to modern GIS design.
+            Calm meets clarity - mapping tools that bring balance to modern GIS
+            design.
           </p>
         </div>
         <div className="md:col-span-3">
           <h4 className="slhp-footerTitle">Company</h4>
           <ul className="slhp-footerLinks">
             <li>
-              <a href="#about">About</a>
+              <Link to="/about">About</Link>
             </li>
           </ul>
         </div>
@@ -27,13 +29,16 @@ function HomeFooter() {
             environmentinitiativeslab@gmail.com
           </p>
           <div className="flex gap-3">
-            <SocialIcon name="Email" href="mailto:environmentinitiativeslab@gmail.com" />
+            <SocialIcon
+              name="Email"
+              href="mailto:environmentinitiativeslab@gmail.com"
+            />
             <SocialIcon name="LinkedIn" href="" />
           </div>
         </div>
       </div>
       <div className="text-center text-xs text-[#2D2D2D]/60 mt-8 border-t border-[#A3D9A5]/50 pt-5">
-        © {new Date().getFullYear()} Spatial Lens. All rights reserved.
+        (c) {new Date().getFullYear()} Spatial Lens. All rights reserved.
       </div>
     </footer>
   );
