@@ -74,7 +74,7 @@ const timeline = [
 
 const teamMembers = [
   {
-    name: "Michael Andhika",
+    name: "Nurlinda",
     role: "Founder & Lead Planner",
     focus: "Urban systems, policy translation, facilitation",
     location: "Jakarta",
@@ -82,7 +82,7 @@ const teamMembers = [
     photo: null,
   },
   {
-    name: "Maya Santoso",
+    name: "Edy Trihatmoko",
     role: "GIS Specialist",
     focus: "Spatial analysis, remote sensing, data pipelines",
     location: "Bandung",
