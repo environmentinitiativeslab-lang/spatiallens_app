@@ -57,12 +57,16 @@ function HomePage() {
             </div>
           </div>
 
-          <div className="slhp-heroMapPreview slhp-animScaleIn">
+          <Link
+            to="/map"
+            className="slhp-heroMapPreview slhp-animScaleIn"
+            aria-label="Open the Map Panel"
+          >
             <img
               src={heroImg}
               alt="Spatial Lens map panel showing Jakarta and surrounding data layers"
             />
-          </div>
+          </Link>
         </div>
       </section>
 
