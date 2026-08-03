@@ -15,6 +15,7 @@ import collabImg4 from "../assets/img/4.png";
 import collabImg5 from "../assets/img/5.png";
 import collabImg6 from "../assets/img/6.png";
 import collabImg7 from "../assets/img/7.png";
+import heroImg from "../assets/img/hero.png";
 
 function HomePage() {
   return (
@@ -56,14 +57,11 @@ function HomePage() {
             </div>
           </div>
 
-          <div className="slhp-heroGlobe slhp-animScaleIn" aria-hidden="true">
-            <div className="slhp-worldMap" />
-            <div className="slhp-path slhp-path1" />
-            <div className="slhp-path slhp-path2" />
-            <div className="slhp-path slhp-path3" />
-            <div className="slhp-pin slhp-pin1" />
-            <div className="slhp-pin slhp-pin2" />
-            <div className="slhp-pin slhp-pin3" />
+          <div className="slhp-heroMapPreview slhp-animScaleIn">
+            <img
+              src={heroImg}
+              alt="Spatial Lens map panel showing Jakarta and surrounding data layers"
+            />
           </div>
         </div>
       </section>
