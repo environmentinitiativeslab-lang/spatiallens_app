@@ -80,30 +80,16 @@ const teamMembers = [
     location: "Jakarta",
     accent: "#154734",
     photo: null,
+    linkedin: "https://www.linkedin.com/in/nurlinda-573253190/",
   },
   {
     name: "Edy Trihatmoko",
     role: "GIS Specialist",
     focus: "Spatial analysis, remote sensing, data pipelines",
-    location: "Bandung",
+    location: "Bogor",
     accent: "#0F6B42",
     photo: null,
-  },
-  {
-    name: "Tara Ling",
-    role: "Design & Storytelling",
-    focus: "Map UX, visual systems, data narratives",
-    location: "Taipei",
-    accent: "#1E7F73",
-    photo: null,
-  },
-  {
-    name: "Rafi Pradana",
-    role: "Training Lead",
-    focus: "Workshops, curriculum, capability building",
-    location: "Yogyakarta",
-    accent: "#2F5DA6",
-    photo: null,
+    linkedin: "https://www.linkedin.com/in/edy-trihatmoko-953b14a8/",
   },
 ];
 
@@ -214,10 +200,14 @@ function AboutUs() {
 
             <div className="about-teamGrid about-teamGrid--feature">
               {teamMembers.map((member) => (
-                <div
+                <a
                   key={member.name}
                   className="about-teamCard about-teamCard--feature"
                   style={{ "--accent": member.accent || "#154734" }}
+                  href={member.linkedin}
+                  target="_blank"
+                  rel="noreferrer"
+                  aria-label={`View ${member.name}'s LinkedIn profile`}
                 >
                   <div
                     className="about-portrait about-portrait--feature"
@@ -244,7 +234,7 @@ function AboutUs() {
                     <p className="about-teamFocus">{member.focus}</p>
                     <p className="about-teamLocation">{member.location}</p>
                   </div>
-                </div>
+                </a>
               ))}
             </div>
           </div>
